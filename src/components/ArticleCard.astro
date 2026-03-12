@@ -1,0 +1,110 @@
+---
+// ArticleCard — static shell, actual cards are rendered by feed.ts
+// This component exists for structural documentation; rendering is done via buildArticleCard()
+import type { Article } from '../scripts/feed';
+
+interface Props {
+  article: Article;
+  index: number;
+}
+
+const { article: a, index: i } = Astro.props;
+
+type Category = 'ai' | 'sec' | 'bb';
+
+function catLabel(cat: Category): string {
+  if (cat === 'ai')  return 'AI';
+  if (cat === 'sec') return 'SEC';
+  return 'BUG BOUNTY';
+}
+
+function catBadgeColor(cat: Category): string {
+  if (cat === 'ai')  return 'var(--color-cyan)';
+  if (cat === 'sec') return 'var(--color-red)';
+  return 'var(--color-amber)';
+}
+
+function borderColor(cat: Category): string {
+  if (cat === 'ai')  return 'var(--color-cyan)';
+  if (cat === 'sec') return 'var(--color-red)';
+  return 'var(--color-amber)';
+}
+
+function severityBg(s: Article['severity']): string {
+  if (s === 'CRITICAL') return 'var(--color-red)';
+  if (s === 'HIGH')     return 'var(--color-amber)';
+  if (s === 'MEDIUM')   return 'var(--color-cyan)';
+  return 'transparent';
+}
+
+function timeAgo(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(mins / 60);
+  const days  = Math.floor(hours / 24);
+  if (days  > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins  > 0) return `${mins}m ago`;
+  return 'just now';
+}
+
+const truncDesc = a.desc.replace(/<[^>]*>/g, '').slice(0, 160);
+const bColor = borderColor(a.cat as Category);
+const cColor = catBadgeColor(a.cat as Category);
+---
+
+<article
+  class="article-card"
+  data-article-idx={i}
+  tabindex="0"
+  role="button"
+  aria-label={`Read: ${a.title}`}
+  style={`
+    background:var(--color-bg2);
+    border:1px solid var(--color-border);
+    border-left:3px solid ${bColor};
+    padding:14px 16px;
+    margin-bottom:8px;
+    border-radius:2px;
+    cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease;
+  `}
+>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+    <span
+      style={`color:${cColor};border:1px solid ${cColor};font-size:10px;padding:0 5px;border-radius:2px;font-weight:700;letter-spacing:.05em`}
+    >{catLabel(a.cat as Category)}</span>
+
+    {a.cve && (
+      <span style="color:var(--color-amber);font-size:10px;font-weight:700">{a.cve}</span>
+    )}
+
+    {a.severity && (
+      <span
+        style={`background:${severityBg(a.severity)};color:#000;font-size:9px;font-weight:800;padding:0 5px;border-radius:2px;letter-spacing:.08em`}
+      >{a.severity}</span>
+    )}
+
+    <span style="margin-left:auto;color:var(--color-text-dim);font-size:11px">{a.source}</span>
+    <span style="color:var(--color-text-dim);font-size:11px">{timeAgo(a.date)}</span>
+  </div>
+
+  <h2 style="color:var(--color-text-bright);font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px">
+    {a.title}
+  </h2>
+
+  {truncDesc && (
+    <p style="color:var(--color-text-dim);font-size:12px;line-height:1.5;margin-bottom:8px">
+      {truncDesc}{a.desc.length > 160 ? '…' : ''}
+    </p>
+  )}
+
+  {a.link && (
+    <a
+      href={a.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color:var(--color-green-dim);font-size:11px;text-decoration:none;letter-spacing:.05em"
+    >→ OPEN ARTICLE</a>
+  )}
+</article>

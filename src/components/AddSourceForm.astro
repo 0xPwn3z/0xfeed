@@ -1,0 +1,190 @@
+---
+// AddSourceForm — add a custom RSS feed source
+---
+
+<section
+  aria-labelledby="add-source-heading"
+  style="
+    background:var(--color-bg2);
+    border:1px solid var(--color-border);
+    border-radius:2px;
+    padding:16px;
+  "
+>
+  <h3
+    id="add-source-heading"
+    style="
+      color:var(--color-text-dim);
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    "
+  >+ ADD SOURCE</h3>
+
+  <form id="add-source-form" novalidate style="display:flex;flex-direction:column;gap:10px">
+
+    <!-- Name -->
+    <div>
+      <label
+        for="src-name"
+        style="display:block;color:var(--color-text-dim);font-size:10px;letter-spacing:.08em;margin-bottom:4px"
+      >NAME</label>
+      <input
+        id="src-name"
+        type="text"
+        placeholder="e.g. My Blog"
+        autocomplete="off"
+        style="
+          width:100%;
+          background:var(--color-bg3);
+          border:1px solid var(--color-border2);
+          color:var(--color-text-bright);
+          font-family:var(--font-mono);
+          font-size:12px;
+          padding:6px 10px;
+          border-radius:2px;
+          outline:none;
+          transition:border-color .15s;
+        "
+      />
+    </div>
+
+    <!-- URL -->
+    <div>
+      <label
+        for="src-url"
+        style="display:block;color:var(--color-text-dim);font-size:10px;letter-spacing:.08em;margin-bottom:4px"
+      >RSS URL</label>
+      <input
+        id="src-url"
+        type="url"
+        placeholder="https://example.com/feed.xml"
+        autocomplete="off"
+        style="
+          width:100%;
+          background:var(--color-bg3);
+          border:1px solid var(--color-border2);
+          color:var(--color-text-bright);
+          font-family:var(--font-mono);
+          font-size:12px;
+          padding:6px 10px;
+          border-radius:2px;
+          outline:none;
+          transition:border-color .15s;
+        "
+      />
+    </div>
+
+    <!-- Category -->
+    <div>
+      <label
+        for="src-cat"
+        style="display:block;color:var(--color-text-dim);font-size:10px;letter-spacing:.08em;margin-bottom:4px"
+      >CATEGORY</label>
+      <select
+        id="src-cat"
+        style="
+          width:100%;
+          background:var(--color-bg3);
+          border:1px solid var(--color-border2);
+          color:var(--color-text);
+          font-family:var(--font-mono);
+          font-size:12px;
+          padding:6px 10px;
+          border-radius:2px;
+          outline:none;
+          cursor:pointer;
+        "
+      >
+        <option value="ai">AI / Research</option>
+        <option value="sec">Cybersecurity</option>
+        <option value="bb">Bug Bounty / PoC</option>
+      </select>
+    </div>
+
+    <!-- Error message -->
+    <p
+      id="src-error"
+      role="alert"
+      aria-live="polite"
+      style="
+        color:var(--color-red);
+        font-size:11px;
+        min-height:16px;
+        display:none;
+      "
+    ></p>
+
+    <!-- Submit -->
+    <button
+      type="submit"
+      style="
+        background:var(--color-green-dark);
+        border:1px solid var(--color-green-dim);
+        color:var(--color-green);
+        font-family:var(--font-mono);
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:.06em;
+        padding:8px;
+        border-radius:2px;
+        cursor:pointer;
+        transition:background .15s, color .15s;
+        width:100%;
+      "
+    >+ ADD FEED</button>
+
+  </form>
+</section>
+
+<script>
+  import { addCustomSource } from '../scripts/feed.ts';
+
+  const form  = document.getElementById('add-source-form') as HTMLFormElement;
+  const nameI = document.getElementById('src-name') as HTMLInputElement;
+  const urlI  = document.getElementById('src-url')  as HTMLInputElement;
+  const catI  = document.getElementById('src-cat')  as HTMLSelectElement;
+  const errEl = document.getElementById('src-error') as HTMLParagraphElement;
+
+  function showError(msg: string) {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  }
+  function clearError() {
+    errEl.textContent = '';
+    errEl.style.display = 'none';
+  }
+
+  [nameI, urlI].forEach(el => {
+    el?.addEventListener('focus', () => { (el as HTMLElement).style.borderColor = 'var(--color-green-dim)'; });
+    el?.addEventListener('blur',  () => { (el as HTMLElement).style.borderColor = 'var(--color-border2)'; });
+  });
+
+  form?.addEventListener('submit', (e: Event) => {
+    e.preventDefault();
+    clearError();
+
+    const name = nameI.value.trim();
+    const url  = urlI.value.trim();
+    const cat  = catI.value as 'ai' | 'sec' | 'bb';
+
+    if (!name) { showError('Name is required.'); nameI.focus(); return; }
+    if (!url)  { showError('URL is required.');  urlI.focus();  return; }
+
+    try { new URL(url); } catch {
+      showError('Enter a valid URL.'); urlI.focus(); return;
+    }
+
+    const ok = addCustomSource(name, url, cat);
+    if (!ok) {
+      showError('Source already exists or URL is invalid.');
+      return;
+    }
+
+    nameI.value = '';
+    urlI.value  = '';
+    catI.value  = 'ai';
+  });
+</script>

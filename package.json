@@ -1,5 +1,5 @@
 {
-  "name": "signal-feed",
+  "name": "0xfeed",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -12,6 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.0.3"
+    "@tailwindcss/vite": "^4.2.1",
+    "astro": "^6.0.3",
+    "tailwindcss": "^4.2.1"
   }
 }

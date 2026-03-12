@@ -1,0 +1,71 @@
+---
+// RightPanel — Add source form, CVE severity chart, trending tags
+import AddSourceForm from './AddSourceForm.astro';
+---
+
+<aside
+  style="
+    width:260px;
+    flex-shrink:0;
+    position:sticky;
+    top:52px;
+    height:calc(100vh - 52px);
+    overflow-y:auto;
+    background:var(--color-bg2);
+    border-left:1px solid var(--color-border);
+    padding:16px 12px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  "
+  aria-label="Tools and insights panel"
+>
+
+  <!-- Add Source -->
+  <AddSourceForm />
+
+  <!-- CVE Severity -->
+  <section aria-labelledby="cve-heading">
+    <h3
+      id="cve-heading"
+      style="
+        color:var(--color-text-dim);
+        font-size:10px;
+        font-weight:700;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        margin-bottom:12px;
+      "
+    >CVE SEVERITY</h3>
+    <div
+      id="cve-panel"
+      style="min-height:80px"
+      aria-label="CVE severity breakdown"
+    >
+      <div style="color:var(--color-text-dim);font-size:11px">Loading…</div>
+    </div>
+  </section>
+
+  <!-- Trending Tags -->
+  <section aria-labelledby="trending-heading" style="flex:1">
+    <h3
+      id="trending-heading"
+      style="
+        color:var(--color-text-dim);
+        font-size:10px;
+        font-weight:700;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        margin-bottom:12px;
+      "
+    >TRENDING TERMS</h3>
+    <div
+      id="trending-tags"
+      style="display:flex;flex-wrap:wrap;gap:6px"
+      aria-label="Trending search terms"
+    >
+      <span style="color:var(--color-text-dim);font-size:11px">Loading…</span>
+    </div>
+  </section>
+
+</aside>
