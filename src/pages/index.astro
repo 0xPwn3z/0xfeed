@@ -33,8 +33,7 @@ import RightPanel from "../components/RightPanel.astro";
           letter-spacing:.08em;
           font-family:var(--font-mono);
         "
-				>0x<span style="color:var(--color-text-dim)">//</span
-				>FEED</span
+				>0x<span style="color:var(--color-text-dim)">//</span>FEED</span
 			>
 			<span
 				style="
@@ -116,6 +115,28 @@ import RightPanel from "../components/RightPanel.astro";
 				onmouseenter="this.style.background='var(--color-green-dark)';this.style.borderColor='var(--color-green-dim)'"
 				onmouseleave="this.style.background='var(--color-bg3)';this.style.borderColor='var(--color-border2)'"
 				>⟳ REFRESH</button
+			>
+			<button
+				id="clean-btn"
+				class="btn-clean"
+				aria-label="Clear fetched content"
+				onclick="cleanFeed()"
+				style="
+          background:var(--color-bg3);
+          border:1px solid var(--color-red);
+          color:var(--color-red);
+          font-family:var(--font-mono);
+          font-size:11px;
+          font-weight:700;
+          letter-spacing:.05em;
+          padding:5px 12px;
+          border-radius:2px;
+          cursor:pointer;
+          transition:background .15s, border-color .15s;
+        "
+				onmouseenter="this.style.background='rgba(255,60,60,0.12)'"
+				onmouseleave="this.style.background='var(--color-bg3)'"
+				>✕ CLEAN</button
 			>
 		</div>
 	</header>
@@ -227,6 +248,14 @@ import RightPanel from "../components/RightPanel.astro";
 			<span class="mob-nav-dot dot-bb"></span>
 			<span>BB</span>
 		</button>
+		<button
+			class="mob-nav-btn"
+			onclick="cleanFeed()"
+			style="color:var(--color-red)"
+		>
+			<span style="font-size:14px">✕</span>
+			<span>CLEAN</span>
+		</button>
 		<button class="mob-nav-btn" onclick="toggleMobileDrawer()">
 			<span style="font-size:16px">⚙</span>
 			<span>MORE</span>
@@ -244,6 +273,29 @@ import RightPanel from "../components/RightPanel.astro";
 	<!-- MOBILE DRAWER (bottom sheet) -->
 	<div class="mobile-drawer" id="mobile-drawer">
 		<div class="mobile-drawer-handle"></div>
+
+		<!-- SOURCES section -->
+		<div class="drawer-section" id="mobile-sources-section">
+			<div class="drawer-section-header">
+				<span class="drawer-section-title">SOURCES</span>
+				<div class="drawer-source-actions">
+					<button
+						onclick="enableAllSources(); syncMobileDrawer()"
+						class="drawer-action-btn">enable all</button
+					>
+					<span class="drawer-action-sep">·</span>
+					<button
+						onclick="disableAllSources(); syncMobileDrawer()"
+						class="drawer-action-btn">none</button
+					>
+				</div>
+			</div>
+			<div id="mobile-sources-list" class="mobile-sources-list">
+				<!-- populated by syncMobileDrawer() -->
+			</div>
+		</div>
+
+		<div class="drawer-divider"></div>
 
 		<div class="drawer-section">
 			<div class="drawer-label">// ADD SOURCE</div>
@@ -286,7 +338,8 @@ import RightPanel from "../components/RightPanel.astro";
 				<div>
 					Errors: <span
 						id="mob-stat-errors"
-						style="color:var(--color-red)">—</span>
+						style="color:var(--color-red)">—</span
+					>
 				</div>
 				<div>Refreshed: <span id="mob-stat-refresh">—</span></div>
 			</div>

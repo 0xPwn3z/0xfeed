@@ -2,8 +2,9 @@
 // Sidebar — filters, source list, session stats
 // Dynamic content populated by feed.ts via DOM IDs
 ---
+
 <aside
-  style="
+    style="
     width:220px;
     flex-shrink:0;
     position:sticky;
@@ -17,14 +18,13 @@
     flex-direction:column;
     gap:20px;
   "
-  aria-label="Feed filters and sources"
+    aria-label="Feed filters and sources"
 >
-
-  <!-- Filter buttons -->
-  <section aria-labelledby="filter-heading">
-    <h3
-      id="filter-heading"
-      style="
+    <!-- Filter buttons -->
+    <section aria-labelledby="filter-heading">
+        <h3
+            id="filter-heading"
+            style="
         color:var(--color-text-dim);
         font-size:10px;
         font-weight:700;
@@ -32,15 +32,17 @@
         margin-bottom:10px;
         text-transform:uppercase;
       "
-    >FILTER</h3>
+        >
+            FILTER
+        </h3>
 
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <!-- ALL -->
-      <button
-        id="filter-all"
-        data-filter="all"
-        aria-pressed="true"
-        style="
+        <div style="display:flex;flex-direction:column;gap:4px">
+            <!-- ALL -->
+            <button
+                id="filter-all"
+                data-filter="all"
+                aria-pressed="true"
+                style="
           display:flex;
           align-items:center;
           gap:8px;
@@ -57,12 +59,14 @@
           transition:background .15s,color .15s,border-color .15s;
           width:100%;
         "
-      >
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-text-dim);flex-shrink:0"></span>
-        ALL
-        <span
-          id="count-all"
-          style="
+            >
+                <span
+                    style="width:8px;height:8px;border-radius:50%;background:var(--color-text-dim);flex-shrink:0"
+                ></span>
+                ALL
+                <span
+                    id="count-all"
+                    style="
             margin-left:auto;
             background:var(--color-border2);
             color:var(--color-text-dim);
@@ -70,15 +74,16 @@
             padding:0 5px;
             border-radius:2px;
           "
-        >0</span>
-      </button>
+                    >0</span
+                >
+            </button>
 
-      <!-- AI -->
-      <button
-        id="filter-ai"
-        data-filter="ai"
-        aria-pressed="false"
-        style="
+            <!-- AI -->
+            <button
+                id="filter-ai"
+                data-filter="ai"
+                aria-pressed="false"
+                style="
           display:flex;
           align-items:center;
           gap:8px;
@@ -95,12 +100,14 @@
           transition:background .15s,color .15s,border-color .15s;
           width:100%;
         "
-      >
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-cyan);flex-shrink:0"></span>
-        AI
-        <span
-          id="count-ai"
-          style="
+            >
+                <span
+                    style="width:8px;height:8px;border-radius:50%;background:var(--color-cyan);flex-shrink:0"
+                ></span>
+                AI
+                <span
+                    id="count-ai"
+                    style="
             margin-left:auto;
             background:var(--color-border2);
             color:var(--color-text-dim);
@@ -108,15 +115,16 @@
             padding:0 5px;
             border-radius:2px;
           "
-        >0</span>
-      </button>
+                    >0</span
+                >
+            </button>
 
-      <!-- SEC -->
-      <button
-        id="filter-sec"
-        data-filter="sec"
-        aria-pressed="false"
-        style="
+            <!-- SEC -->
+            <button
+                id="filter-sec"
+                data-filter="sec"
+                aria-pressed="false"
+                style="
           display:flex;
           align-items:center;
           gap:8px;
@@ -133,12 +141,14 @@
           transition:background .15s,color .15s,border-color .15s;
           width:100%;
         "
-      >
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-red);flex-shrink:0"></span>
-        SEC
-        <span
-          id="count-sec"
-          style="
+            >
+                <span
+                    style="width:8px;height:8px;border-radius:50%;background:var(--color-red);flex-shrink:0"
+                ></span>
+                SEC
+                <span
+                    id="count-sec"
+                    style="
             margin-left:auto;
             background:var(--color-border2);
             color:var(--color-text-dim);
@@ -146,15 +156,16 @@
             padding:0 5px;
             border-radius:2px;
           "
-        >0</span>
-      </button>
+                    >0</span
+                >
+            </button>
 
-      <!-- BUG BOUNTY -->
-      <button
-        id="filter-bb"
-        data-filter="bb"
-        aria-pressed="false"
-        style="
+            <!-- BUG BOUNTY -->
+            <button
+                id="filter-bb"
+                data-filter="bb"
+                aria-pressed="false"
+                style="
           display:flex;
           align-items:center;
           gap:8px;
@@ -171,12 +182,14 @@
           transition:background .15s,color .15s,border-color .15s;
           width:100%;
         "
-      >
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-amber);flex-shrink:0"></span>
-        BUG BOUNTY
-        <span
-          id="count-bb"
-          style="
+            >
+                <span
+                    style="width:8px;height:8px;border-radius:50%;background:var(--color-amber);flex-shrink:0"
+                ></span>
+                BUG BOUNTY
+                <span
+                    id="count-bb"
+                    style="
             margin-left:auto;
             background:var(--color-border2);
             color:var(--color-text-dim);
@@ -184,16 +197,17 @@
             padding:0 5px;
             border-radius:2px;
           "
-        >0</span>
-      </button>
-    </div>
-  </section>
+                    >0</span
+                >
+            </button>
+        </div>
+    </section>
 
-  <!-- Session stats -->
-  <section aria-labelledby="stats-heading">
-    <h3
-      id="stats-heading"
-      style="
+    <!-- Session stats -->
+    <section aria-labelledby="stats-heading">
+        <h3
+            id="stats-heading"
+            style="
         color:var(--color-text-dim);
         font-size:10px;
         font-weight:700;
@@ -201,49 +215,72 @@
         margin-bottom:10px;
         text-transform:uppercase;
       "
-    >SESSION</h3>
+        >
+            SESSION
+        </h3>
 
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;justify-content:space-between;font-size:11px">
-        <span style="color:var(--color-text-dim)">Items</span>
-        <span id="stat-total" style="color:var(--color-green)">—</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px">
-        <span style="color:var(--color-text-dim)">Sources</span>
-        <span id="stat-sources" style="color:var(--color-green)">—</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px">
-        <span style="color:var(--color-text-dim)">Errors</span>
-        <span id="stat-errors" style="color:var(--color-red)">—</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px">
-        <span style="color:var(--color-text-dim)">Refreshed</span>
-        <span id="stat-time" style="color:var(--color-text)">—</span>
-      </div>
-    </div>
-  </section>
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <div
+                style="display:flex;justify-content:space-between;font-size:11px"
+            >
+                <span style="color:var(--color-text-dim)">Items</span>
+                <span id="stat-total" style="color:var(--color-green)">—</span>
+            </div>
+            <div
+                style="display:flex;justify-content:space-between;font-size:11px"
+            >
+                <span style="color:var(--color-text-dim)">Sources</span>
+                <span id="stat-sources" style="color:var(--color-green)">—</span
+                >
+            </div>
+            <div
+                style="display:flex;justify-content:space-between;font-size:11px"
+            >
+                <span style="color:var(--color-text-dim)">Errors</span>
+                <span id="stat-errors" style="color:var(--color-red)">—</span>
+            </div>
+            <div
+                style="display:flex;justify-content:space-between;font-size:11px"
+            >
+                <span style="color:var(--color-text-dim)">Refreshed</span>
+                <span id="stat-time" style="color:var(--color-text)">—</span>
+            </div>
+        </div>
+    </section>
 
-  <!-- Sources list -->
-  <section aria-labelledby="sources-heading" style="flex:1;min-height:0;display:flex;flex-direction:column">
-    <h3
-      id="sources-heading"
-      style="
-        color:var(--color-text-dim);
-        font-size:10px;
-        font-weight:700;
-        letter-spacing:.12em;
-        margin-bottom:10px;
-        text-transform:uppercase;
-      "
-    >SOURCES</h3>
-
-    <div
-      id="sources-list"
-      style="flex:1;overflow-y:auto"
-      aria-label="Feed source statuses"
+    <!-- Sources list -->
+    <section
+        aria-labelledby="sources-heading"
+        style="flex:1;min-height:0;display:flex;flex-direction:column"
     >
-      <div style="color:var(--color-text-dim);font-size:11px">Loading sources…</div>
-    </div>
-  </section>
+        <h3
+            id="sources-heading"
+            style="
+        color:var(--color-text-dim);
+        font-size:10px;
+        font-weight:700;
+        letter-spacing:.12em;
+        margin-bottom:10px;
+        text-transform:uppercase;
+      "
+        >
+            SOURCES
+        </h3>
 
+        <div class="sidebar-quick-actions">
+            <button onclick="enableAllSources()">enable all</button>
+            <span style="color:var(--color-border2)">·</span>
+            <button onclick="disableAllSources()">none</button>
+        </div>
+
+        <div
+            id="sources-list"
+            style="flex:1;overflow-y:auto"
+            aria-label="Feed source statuses"
+        >
+            <div style="color:var(--color-text-dim);font-size:11px">
+                Loading sources…
+            </div>
+        </div>
+    </section>
 </aside>

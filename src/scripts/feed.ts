@@ -261,10 +261,23 @@ async function fetchWithConcurrency(
 
 async function fetchAllFeeds(): Promise<void> {
     if (isRefreshing) return;
+
+    const enabledSources = sources.filter(s => s.enabled);
+
+    if (enabledSources.length === 0) {
+        showEmptyState();
+        showToast('No sources enabled. Select sources from the sidebar first.', 'error');
+        return;
+    }
+
     isRefreshing = true;
     allArticles = [];
     errorCount = 0;
     currentPage = 1;
+
+    // Reset enabled sources to 'load' state
+    enabledSources.forEach(s => { sourceStatuses.set(s.url, 'load'); });
+    renderSourcesList();
 
     updateRefreshBtn(true);
     showToast('Fetching feeds…', 'ok');
@@ -273,15 +286,14 @@ async function fetchAllFeeds(): Promise<void> {
     const container = document.getElementById('feed-container');
     if (container) {
         container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-24 text-[var(--color-text-dim)]">
-        <div class="text-4xl mb-4">◈</div>
-        <p class="text-sm">Fetching feeds…</p>
-        <p class="text-xs mt-1 opacity-60">Loading sources<span class="terminal-cursor"></span></p>
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Fetching ${enabledSources.length} source${enabledSources.length > 1 ? 's' : ''}<span class="terminal-cursor"></span></span>
       </div>`;
     }
 
     // Fetch with concurrency=4, render partial results after each source resolves
-    await fetchWithConcurrency(sources, 4, () => {
+    await fetchWithConcurrency(enabledSources, 4, () => {
         updateLoadingProgress();
         allArticles.sort((a, b) => b.date.getTime() - a.date.getTime());
         renderFeed();
@@ -436,11 +448,12 @@ function goToPage(page: number): void {
 }
 
 function updateLoadingProgress(): void {
-    const done = sources.filter((s) => {
+    const enabledSources = sources.filter(s => s.enabled);
+    const done = enabledSources.filter((s) => {
         const st = sourceStatuses.get(s.url);
         return st === 'ok' || st === 'err';
     }).length;
-    const total = sources.length;
+    const total = enabledSources.length;
     const el = document.getElementById('article-count');
     if (el && done < total) {
         el.textContent = `${allArticles.length} articles · loading ${done}/${total} sources…`;
@@ -680,26 +693,76 @@ function renderSourcesList(): void {
     if (!el) return;
 
     el.innerHTML = sources.map((s, i) => {
-        const status = sourceStatuses.get(s.url) ?? 'load';
-        const dotColor = status === 'ok' ? 'var(--color-green)' : status === 'err' ? 'var(--color-red)' : 'var(--color-amber)';
-        const blink = status === 'load' ? 'animation:blink 1s infinite' : '';
-        const catColor = s.cat === 'ai' ? 'var(--color-cyan)' : s.cat === 'sec' ? 'var(--color-red)' : 'var(--color-amber)';
-        const retryBtn = status === 'err'
-            ? `<button class="retry-btn" onclick="window.__retrySingle(${i})" title="Retry">⟳</button>`
-            : '';
+        const status = sourceStatuses.get(s.url);
+        const dotClass = s.enabled
+            ? (status === 'ok' ? 'source-ok' : status === 'err' ? 'source-err' : 'source-load')
+            : 'source-off';
+        const catBadge = { ai: 'AI', sec: 'SEC', bb: 'BB' }[s.cat];
         return `
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--color-border)">
-      <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;${blink}"></span>
-      <span style="color:var(--color-text-dim);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</span>
-      <span style="color:${catColor};font-size:9px;font-weight:700;flex-shrink:0">${s.cat.toUpperCase()}</span>
-      ${retryBtn}
+    <div class="source-item ${s.enabled ? 'source-enabled' : 'source-disabled'}"
+         onclick="toggleSource(${i})"
+         title="${s.enabled ? 'Click to disable' : 'Click to enable'}">
+      <span class="dot ${dotClass}"></span>
+      <span class="src-name">${escapeHtml(s.name)}</span>
+      <span class="src-cat-badge src-cat-${s.cat}">${catBadge}</span>
+      <span class="src-toggle">${s.enabled ? '●' : '○'}</span>
     </div>`;
     }).join('');
 
-    const okCount = sources.filter((s) => (sourceStatuses.get(s.url) ?? 'load') === 'ok').length;
+    const enabledCount = sources.filter(s => s.enabled).length;
+    const okCount = sources.filter(s => s.enabled && sourceStatuses.get(s.url) === 'ok').length;
     const statEl = document.getElementById('stat-sources');
-    if (statEl) statEl.textContent = String(okCount);
+    if (statEl) statEl.textContent = `${okCount}/${enabledCount}`;
 }
+
+function saveEnabledState(): void {
+    const map: Record<string, boolean> = {};
+    sources.forEach(s => { map[s.url] = s.enabled; });
+    localStorage.setItem('signal_enabled_sources', JSON.stringify(map));
+}
+
+function toggleSource(index: number): void {
+    const src = sources[index];
+    if (!src) return;
+    src.enabled = !src.enabled;
+    if (!src.enabled) sourceStatuses.delete(src.url); // reset dot when disabled
+    saveEnabledState();
+    renderSourcesList();
+    // Do NOT fetch — user must click REFRESH manually
+}
+
+function enableAllSources(): void {
+    sources.forEach(s => { s.enabled = true; });
+    saveEnabledState();
+    renderSourcesList();
+}
+
+function disableAllSources(): void {
+    sources.forEach(s => { s.enabled = false; sourceStatuses.delete(s.url); });
+    saveEnabledState();
+    renderSourcesList();
+}
+
+function showEmptyState(): void {
+    const container = document.getElementById('feed-container');
+    if (!container) return;
+    container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">▣</div>
+      <div class="empty-title">NO SOURCES SELECTED</div>
+      <div class="empty-body">
+        Enable one or more sources from the sidebar,<br>
+        then click <span class="empty-highlight">REFRESH</span> to load the feed.
+      </div>
+    </div>`;
+    const countEl = document.getElementById('article-count');
+    if (countEl) countEl.textContent = '0 articles';
+}
+
+// Expose toggle/enable/disable to window for inline onclick handlers
+(window as any).toggleSource = toggleSource;
+(window as any).enableAllSources = enableAllSources;
+(window as any).disableAllSources = disableAllSources;
 
 function setSourceStatus(url: string, status: SourceStatus): void {
     sourceStatuses.set(url, status);
@@ -760,9 +823,32 @@ export function showToast(msg: string, type: 'ok' | 'error'): void {
     setTimeout(() => t.remove(), 3500);
 }
 
-// ─── Custom sources persistence ───────────────────────────────────────────────
+// ─── Source loading & enabled-state persistence ───────────────────────────────
 
 const LS_KEY = '0xfeed_sources';
+
+function loadSources(): FeedSource[] {
+    const base = DEFAULT_SOURCES.map(s => ({ ...s }));
+    try {
+        // Restore enabled state from localStorage
+        const savedEnabled: Record<string, boolean> = JSON.parse(
+            localStorage.getItem('signal_enabled_sources') ?? '{}'
+        );
+        base.forEach(s => {
+            if (s.url in savedEnabled) s.enabled = savedEnabled[s.url];
+        });
+        // Merge in any custom sources the user added previously
+        const savedCustom: FeedSource[] = JSON.parse(
+            localStorage.getItem(LS_KEY) ?? '[]'
+        );
+        savedCustom.forEach(c => {
+            if (!base.find(s => s.url === c.url)) {
+                base.push({ ...c, enabled: c.enabled ?? false });
+            }
+        });
+    } catch { /* ignore parse errors */ }
+    return base;
+}
 
 function loadCustomSources(): FeedSource[] {
     try {
@@ -781,13 +867,14 @@ export function addCustomSource(name: string, url: string, cat: Category): boole
     if (sources.some((s) => s.url === url)) return false;
     try { new URL(url); } catch { return false; }
 
-    const src: FeedSource = { name, url, cat };
+    const src: FeedSource = { name, url, cat, enabled: true };
     sources.push(src);
     sourceStatuses.set(url, 'load');
 
     const custom = loadCustomSources().filter((s) => !DEFAULT_SOURCES.some((d) => d.url === s.url));
     custom.push(src);
     saveCustomSources(custom);
+    saveEnabledState();
 
     renderSourcesList();
     fetchFeed(src).then((arts) => {
@@ -853,6 +940,29 @@ export function refreshAll(): void {
     fetchAllFeeds();
 }
 
+export function cleanFeed(): void {
+    allArticles = [];
+    errorCount = 0;
+    currentPage = 1;
+    currentSearch = '';
+    const input = document.getElementById('search-input') as HTMLInputElement | null;
+    if (input) input.value = '';
+    sourceStatuses.clear();
+    sources.forEach(s => { s.status = undefined; });
+    renderSourcesList();
+    showEmptyState();
+    updateStats();
+    updateTicker();
+    updateCVEPanel();
+    updateTrendingTags();
+    updateFilterCounts();
+    const paginationBar = document.getElementById('pagination-bar');
+    if (paginationBar) paginationBar.innerHTML = '';
+    showToast('Feed cleared.', 'ok');
+}
+
+(window as any).cleanFeed = cleanFeed;
+
 // Retry single source — callable from inline onclick in sources list
 (window as unknown as Record<string, unknown>).__retrySingle = (index: number) => {
     retrySingle(index);
@@ -895,7 +1005,7 @@ function openMobileDrawer(): void {
     document.getElementById('mobile-drawer')?.classList.add('open');
     document.getElementById('mobile-drawer-overlay')?.classList.add('open');
     document.body.style.overflow = 'hidden';
-    syncMobileStats();
+    syncMobileDrawer();
 }
 
 function closeMobileDrawer(): void {
@@ -918,6 +1028,45 @@ function syncMobileStats(): void {
     });
 }
 
+function syncMobileDrawer(): void {
+    syncMobileSources();
+    syncMobileStats();
+}
+
+function syncMobileSources(): void {
+    const container = document.getElementById('mobile-sources-list');
+    if (!container) return;
+
+    container.innerHTML = sources.map((src, i) => {
+        const isEnabled = src.enabled;
+        const catLabel = ({ ai: 'AI', sec: 'SEC', bb: 'BB' } as Record<string, string>)[src.cat] ?? src.cat.toUpperCase();
+        const statusClass = isEnabled ? (src.status ?? 'load') : 'off';
+
+        return `
+      <div class="mobile-source-row ${isEnabled ? 'is-enabled' : 'is-disabled'}"
+           onclick="mobiletoggleSource(${i})">
+        <span class="mobile-src-dot dot source-${statusClass}"></span>
+        <span class="mobile-src-name">${src.name}</span>
+        <span class="mobile-src-cat src-cat-${src.cat}">${catLabel}</span>
+        <span class="mobile-src-toggle">${isEnabled ? '●' : '○'}</span>
+      </div>
+    `;
+    }).join('');
+}
+
+function mobiletoggleSource(index: number): void {
+    const src = sources[index];
+    if (!src) return;
+    src.enabled = !src.enabled;
+    if (!src.enabled) src.status = undefined;
+    saveEnabledState();
+    syncMobileSources();
+    renderSourcesList();
+}
+
+(window as any).mobiletoggleSource = mobiletoggleSource;
+(window as any).syncMobileDrawer = syncMobileDrawer;
+
 function addCustomSourceMobile(): void {
     const errEl = document.getElementById('mob-form-error') as HTMLElement | null;
     const mName = (document.getElementById('mob-src-name') as HTMLInputElement)?.value.trim() ?? '';
@@ -938,6 +1087,7 @@ function addCustomSourceMobile(): void {
     (document.getElementById('mob-src-name') as HTMLInputElement).value = '';
     (document.getElementById('mob-src-url') as HTMLInputElement).value = '';
     if (errEl) errEl.style.display = 'none';
+    syncMobileDrawer();
 }
 
 // Expose mobile functions to window for inline onclick handlers
@@ -965,15 +1115,7 @@ async function testProxies(): Promise<void> {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 export async function initFeed(): Promise<void> {
-    // Merge defaults + custom sources, dedup by URL
-    const custom = loadCustomSources();
-    const merged = [...DEFAULT_SOURCES];
-    for (const c of custom) {
-        if (!merged.some((s) => s.url === c.url)) merged.push(c);
-    }
-    sources = merged;
-
-    for (const s of sources) sourceStatuses.set(s.url, 'load');
+    sources = loadSources();
 
     renderSourcesList();
     wireFilters();
@@ -984,8 +1126,10 @@ export async function initFeed(): Promise<void> {
 
     if (import.meta.env.DEV) await testProxies();
 
-    fetchAllFeeds();
-
-    // Auto-refresh every 5 minutes
-    setInterval(fetchAllFeeds, 5 * 60 * 1000);
+    const enabledSources = sources.filter(s => s.enabled);
+    if (enabledSources.length === 0) {
+        showEmptyState();
+    } else {
+        await fetchAllFeeds();
+    }
 }
